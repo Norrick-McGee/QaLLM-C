@@ -1,6 +1,7 @@
 use llm::models::Llama;
 use llm::KnownModel;
-
+use llm::Model;
+use std::path::PathBuf;
 
 
 struct Message{
@@ -21,9 +22,6 @@ impl Conversation{
 }
 
 fn main() {
-    let data: Llama;
-    // data.into_inner()
-    
     let conversation = Conversation::new();
     
     let mut context_dialog = format!(
@@ -45,6 +43,22 @@ fn main() {
         context_dialog.push_str(&curr_line);
     }
     
-    // To-do: "query" the LLM bellow
+    let model_path = "Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_K_M.bin";
+    // load a GGML model from disk
+    let llama = llm::load::<Llama>(
+        // path to GGML file
+        &PathBuf::from(&model_path),
+        llm::TokenizerSource::Embedded,
+        
+        Default::default(),
+        // load progress callback
+        llm::load_progress_callback_stdout
+    )
+    .unwrap_or_else(|err| panic!("Failed to load model: {err}"));
+
+    // use the model to generate text from a prompt
+    // let mut session = llama.start_session(Default::default());
+    let session = Model::start_session(&llama, Default::default());
+
 }
 
