@@ -1,7 +1,7 @@
 use llm::models::Llama;
-use llm::KnownModel;
 use llm::Model;
 use std::path::PathBuf;
+use std::convert::Infallible;
 
 
 struct Message{
@@ -21,9 +21,43 @@ impl Conversation{
     }
 }
 
+
+fn inference_callback<'a>(
+    stop_sequence: String,
+    buf: &'a mut String,
+    out_str: &'a mut String,
+) -> impl FnMut(llm::InferenceResponse) -> Result<llm::InferenceFeedback, Infallible> + 'a {
+    use llm::InferenceFeedback::Halt;
+    use llm::InferenceFeedback::Continue;
+    move |resp| match resp {
+        llm::InferenceResponse::InferredToken(t) => {
+            let mut reverse_buf = buf.clone();
+                reverse_buf.push_str(t.as_str());
+            if stop_sequence.as_str().eq(reverse_buf.as_str()) {
+                buf.clear();
+                return Ok::<llm::InferenceFeedback, Infallible>(Halt);
+            } else if stop_sequence.as_str().starts_with(reverse_buf.as_str()) {
+                buf.push_str(t.as_str());
+                return Ok(Continue);
+            }
+
+            if buf.is_empty() {
+                out_str.push_str(&t);
+            } else {
+                out_str.push_str(&reverse_buf);
+            }
+
+            Ok(Continue)
+        }
+        llm::InferenceResponse::EotToken => Ok(Halt),
+         _ => Ok(Continue),
+    }
+}
+
 fn main() {
     let conversation = Conversation::new();
     
+    let chatbot_persona = "A chat between a human and an assistant";
     let mut context_dialog = format!(
         "### Robot: It's me robo-buddy, how can I help you today?
         ### Human: How big is the sun?
@@ -36,16 +70,16 @@ fn main() {
     for message in conversation.messages.into_iter() {
         let msg = message.text;
         let curr_line = if message.user {
-            format!("Human: {msg}\n")
+            format!("### Human: {msg}\n")
         } else {
-            format!("Robot: {msg}\n")
+            format!("### Robot: {msg}\n")
         };
         context_dialog.push_str(&curr_line);
     }
     
     let model_path = "Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_K_M.bin";
     // load a GGML model from disk
-    let llama = llm::load::<Llama>(
+    let mut llama = llm::load::<Llama>(
         // path to GGML file
         &PathBuf::from(&model_path),
         llm::TokenizerSource::Embedded,
@@ -55,10 +89,37 @@ fn main() {
         llm::load_progress_callback_stdout
     )
     .unwrap_or_else(|err| panic!("Failed to load model: {err}"));
+    
+    let prompt_text = format!("{chatbot_persona}\n{context_dialog}\n### Robot:").to_string();
+    let prompt = llm::Prompt::Text(&prompt_text); 
 
-    // use the model to generate text from a prompt
-    // let mut session = llama.start_session(Default::default());
-    let session = Model::start_session(&llama, Default::default());
+
+    let mut request = llm::InferenceRequest {
+        prompt: prompt,
+        parameters: &llm::InferenceParameters::default(),
+        play_back_previous_tokens: false,
+        maximum_token_count: None
+    };
+    
+
+    let mut buf = String::new();
+    let mut res = String::new();
+    let inference_callback = inference_callback(
+        String::from("### Human:"), &mut buf, &mut res
+    );
+
+    let mut session = Model::start_session(&llama, Default::default());
+    let mut rng = rand::thread_rng();
+
+    session.infer(
+        &mut llama,
+        &mut rng,
+        &mut request,
+        &mut Default::default(),
+        inference_callback
+        ).unwrap_or_else(|e| panic!("{e}"));
+
+    println!("{}",res);
 
 }
 
