@@ -2,6 +2,7 @@ use llm::models::Llama;
 use llm::Model;
 use std::path::PathBuf;
 use std::convert::Infallible;
+use std::io;
 
 
 struct Message{
@@ -125,6 +126,16 @@ fn _main() {
 
 fn main(){
     
+    println!("What would you like to ask the chatbot?");
+
+    let mut input = String::new();
+
+    io::stdin().read_line(&mut input).unwrap();
+
+
+    println!("{}",input);
+
+
     _main();
 
 }
