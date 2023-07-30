@@ -58,11 +58,11 @@ fn inference_callback<'a>(
 fn ask_chatbot(chat: String) {
     let conversation = Conversation::new();
     
-    let chatbot_persona = "A chat between a human and an assistant";
+    let chatbot_persona = "A chat between a human and an assistant\n";
     let mut context_dialog = format!(
-        "### Robot: It's me robo-buddy, how can I help you today?
-        ### Human: How big is the sun?
-        ### Robot: Sorry, I'm a robot, I can't see the sun.
+        "### Robot: What questions do you have today??
+        ### Human: What is the capital of Australia?
+        ### Robot: The capital city of Australia is Canberra.
         "
         );
 
