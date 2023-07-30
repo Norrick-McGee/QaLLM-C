@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 llm = { git = "https://github.com/rustformers/llm.git", branch = "main" }
+rand = { version = "0.8.5" }

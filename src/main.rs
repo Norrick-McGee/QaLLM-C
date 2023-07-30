@@ -54,7 +54,7 @@ fn inference_callback<'a>(
     }
 }
 
-fn main() {
+fn _main() {
     let conversation = Conversation::new();
     
     let chatbot_persona = "A chat between a human and an assistant";
@@ -123,3 +123,8 @@ fn main() {
 
 }
 
+fn main(){
+    
+    _main();
+
+}
