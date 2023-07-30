@@ -55,7 +55,7 @@ fn inference_callback<'a>(
     }
 }
 
-fn _main() {
+fn ask_chatbot() {
     let conversation = Conversation::new();
     
     let chatbot_persona = "A chat between a human and an assistant";
@@ -127,15 +127,11 @@ fn _main() {
 fn main(){
     
     println!("What would you like to ask the chatbot?");
-
     let mut input = String::new();
-
     io::stdin().read_line(&mut input).unwrap();
-
-
     println!("{}",input);
 
 
-    _main();
+    ask_chatbot();
 
 }
