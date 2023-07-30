@@ -55,7 +55,7 @@ fn inference_callback<'a>(
     }
 }
 
-fn ask_chatbot() {
+fn ask_chatbot(chat: String) {
     let conversation = Conversation::new();
     
     let chatbot_persona = "A chat between a human and an assistant";
@@ -65,6 +65,8 @@ fn ask_chatbot() {
         ### Robot: Sorry, I'm a robot, I can't see the sun.
         "
         );
+
+    context_dialog.push_str(format!("### Human: {chat}").as_str());
 
     // To-do: Add Dummy messages to parse and add to dialog
 
@@ -129,9 +131,7 @@ fn main(){
     println!("What would you like to ask the chatbot?");
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
-    println!("{}",input);
 
-
-    ask_chatbot();
+    ask_chatbot(input);
 
 }
