@@ -3,6 +3,7 @@ use llm::Model;
 use std::path::PathBuf;
 use std::convert::Infallible;
 use std::io;
+use chrono;
 
 
 struct Message{
@@ -57,7 +58,10 @@ fn inference_callback<'a>(
 
 fn ask_chatbot(chat: String) {
     let conversation = Conversation::new();
+    let current_time = chrono::offset::Utc::now();
     
+    println!("current time is: {}", current_time);
+
     let chatbot_persona = "A chat between a human and an assistant\n";
     let mut context_dialog = format!(
         "### Robot: What questions do you have today??
